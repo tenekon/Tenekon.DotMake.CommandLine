@@ -1,7 +1,6 @@
 <Project>
 
   <PropertyGroup>
-    <!-- AssemblyTitle needs to be set in .targets which is imported after .csproj -->
     <AssemblyTitle Condition="'$(OutputType)' != 'Exe'">$(AssemblyName) ($(TargetFramework))</AssemblyTitle>
   </PropertyGroup>
 
@@ -21,7 +20,7 @@
       <InformationalVersion>$(Version)</InformationalVersion>
     </PropertyGroup>
   </Target>
-  
+
   <!-- 
     EmitCompilerGeneratedFiles is useful for debugging, it doesn't work for live editing (VS continues to run the cached 
     source generator, needs restart as it uses VBCSCompiler.exe for Roslyn analyzers/generators) but when project is 
@@ -54,7 +53,7 @@
   </Target>
   -->
   <Target Name="CleanCompilerGeneratedFiles" AfterTargets="Clean"
-          Condition="'$(EmitCompilerGeneratedFiles)' == 'true' AND '$(TargetFramework)' != ''">
+    Condition="'$(EmitCompilerGeneratedFiles)' == 'true' AND '$(TargetFramework)' != ''">
     <RemoveDir Directories="$(CompilerGeneratedFilesOutputPath)" />
   </Target>
 
@@ -64,7 +63,7 @@
     and use that even if the version was not changed.
   -->
   <Target Name="DeleteLocalOrGlobalNugetPackage" BeforeTargets="Pack"
-          Condition="'$(NugetPackageRoot)' != ''">
-    <RemoveDir Directories="$(NugetPackageRoot)/$(PackageId.ToLowerInvariant())/$(Version)"/>
+    Condition="'$(NugetPackageRoot)' != ''">
+    <RemoveDir Directories="$(NugetPackageRoot)/$(PackageId.ToLowerInvariant())/$(Version)" />
   </Target>
 </Project>
