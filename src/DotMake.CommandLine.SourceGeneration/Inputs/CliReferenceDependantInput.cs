@@ -29,7 +29,7 @@ namespace DotMake.CommandLine.SourceGeneration.Inputs
                         break;
                     case "Microsoft.Extensions.DependencyInjection":
                         if (referencedAssembly.Version >= new Version(2, 1, 1))
-                           HasMsDependencyInjection = true;
+                            HasMsDependencyInjection = true;
                         break;
                 }
             }

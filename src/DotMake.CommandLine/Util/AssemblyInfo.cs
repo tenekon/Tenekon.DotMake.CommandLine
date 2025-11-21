@@ -14,7 +14,7 @@ namespace DotMake.CommandLine.Util
             {
                 var parts = assemblyInformationalVersion.InformationalVersion.Split('+');
                 Version = parts[0].TrimStart('v');
-                SourceRevisionId = (parts.Length > 1) ?  parts[1].Trim() : "";
+                SourceRevisionId = (parts.Length > 1) ? parts[1].Trim() : "";
             }
             else
             {

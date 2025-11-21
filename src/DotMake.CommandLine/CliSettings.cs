@@ -102,6 +102,6 @@ namespace DotMake.CommandLine
         /// </summary>
         public CliTheme Theme { get; set; } = CliTheme.Default;
 
-        private static readonly ParserConfiguration DefaultParserConfiguration = new ();
+        private static readonly ParserConfiguration DefaultParserConfiguration = new();
     }
 }

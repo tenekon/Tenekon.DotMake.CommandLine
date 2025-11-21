@@ -78,7 +78,7 @@ namespace TestApp.Commands
             return instance;
         }
     }
-    
+
     public struct CustomStruct
     {
         private readonly string value;

@@ -48,7 +48,7 @@ namespace DotMake.CommandLine.Util
                     //so SetColor should be called after SetBgColor.
                     //The better way would be combining color setting methods into one with ResetColor at top
                     //but for now we call SetBgColor once anyway.
-                    Console.ResetColor(); 
+                    Console.ResetColor();
                 else
                     Console.BackgroundColor = color.Value;
             }
@@ -98,52 +98,52 @@ namespace DotMake.CommandLine.Util
                 switch (backgroundColor)
                 {
                     case ConsoleColor.Black:
-                        foregroundColor =  ConsoleColor.Gray;
+                        foregroundColor = ConsoleColor.Gray;
                         break;
                     case ConsoleColor.Gray: //White
-                        foregroundColor =  ConsoleColor.Black;
+                        foregroundColor = ConsoleColor.Black;
                         break;
                     case ConsoleColor.White: //Bright White
-                        foregroundColor =  ConsoleColor.Black;
+                        foregroundColor = ConsoleColor.Black;
                         break;
                     case ConsoleColor.DarkGray:
-                        foregroundColor =  ConsoleColor.Gray;
+                        foregroundColor = ConsoleColor.Gray;
                         break;
                     case ConsoleColor.Red:
-                        foregroundColor =  ConsoleColor.DarkRed;
+                        foregroundColor = ConsoleColor.DarkRed;
                         break;
                     case ConsoleColor.DarkRed:
-                        foregroundColor =  ConsoleColor.Red;
+                        foregroundColor = ConsoleColor.Red;
                         break;
                     case ConsoleColor.Blue:
-                        foregroundColor =  ConsoleColor.DarkBlue;
+                        foregroundColor = ConsoleColor.DarkBlue;
                         break;
                     case ConsoleColor.DarkBlue:
-                        foregroundColor =  ConsoleColor.Blue;
+                        foregroundColor = ConsoleColor.Blue;
                         break;
                     case ConsoleColor.Green:
-                        foregroundColor =  ConsoleColor.DarkGreen;
+                        foregroundColor = ConsoleColor.DarkGreen;
                         break;
                     case ConsoleColor.DarkGreen:
-                        foregroundColor =  ConsoleColor.Green ;
+                        foregroundColor = ConsoleColor.Green;
                         break;
                     case ConsoleColor.Yellow:
-                        foregroundColor =  ConsoleColor.DarkYellow;
+                        foregroundColor = ConsoleColor.DarkYellow;
                         break;
                     case ConsoleColor.DarkYellow:
-                        foregroundColor =  ConsoleColor.Yellow ;
+                        foregroundColor = ConsoleColor.Yellow;
                         break;
                     case ConsoleColor.Cyan:
-                        foregroundColor =  ConsoleColor.DarkCyan;
+                        foregroundColor = ConsoleColor.DarkCyan;
                         break;
                     case ConsoleColor.DarkCyan:
-                        foregroundColor =  ConsoleColor.Cyan;
+                        foregroundColor = ConsoleColor.Cyan;
                         break;
                     case ConsoleColor.Magenta:
-                        foregroundColor =  ConsoleColor.DarkMagenta;
+                        foregroundColor = ConsoleColor.DarkMagenta;
                         break;
                     case ConsoleColor.DarkMagenta:
-                        foregroundColor =  ConsoleColor.Magenta;
+                        foregroundColor = ConsoleColor.Magenta;
                         break;
                 }
 

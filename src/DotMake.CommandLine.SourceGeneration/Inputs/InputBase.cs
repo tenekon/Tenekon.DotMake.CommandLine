@@ -57,7 +57,7 @@ namespace DotMake.CommandLine.SourceGeneration.Inputs
         }
 
         public ISymbol Symbol { get; }
-        
+
         public SyntaxNode SyntaxNode { get; }
 
         public SemanticModel SemanticModel { get; }

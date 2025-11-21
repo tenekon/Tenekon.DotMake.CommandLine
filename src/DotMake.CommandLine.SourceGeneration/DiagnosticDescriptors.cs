@@ -72,7 +72,7 @@ namespace DotMake.CommandLine.SourceGeneration
                 "DotMake.CommandLine",
                 severity,
                 isEnabledByDefault: true
-                //helpLinkUri: $"https://dotmake.build/command-line/error#{id}"
+            //helpLinkUri: $"https://dotmake.build/command-line/error#{id}"
             );
         }
 

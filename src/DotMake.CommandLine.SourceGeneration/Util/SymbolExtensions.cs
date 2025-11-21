@@ -16,7 +16,7 @@ namespace DotMake.CommandLine.SourceGeneration.Util
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-                    //SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+        //SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         private static readonly SymbolDisplayFormat CompareFormat =
             new SymbolDisplayFormat(
@@ -82,7 +82,7 @@ namespace DotMake.CommandLine.SourceGeneration.Util
                     .FirstOrDefault();
                 if (enumerableType != null)
                     return enumerableType;
-                
+
                 // If type is IEnumerable itself or inherits (IEnumerable -> ICollection -> IList)
                 if (namedType.SpecialType == SpecialType.System_Collections_IEnumerable
                     || namedType.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable))
@@ -194,7 +194,7 @@ namespace DotMake.CommandLine.SourceGeneration.Util
             var parts = fullName.Split('.');
             return parts.Last();
         }
-        
+
         public static bool IsTask(this ITypeSymbol type)
         {
             return type.ToCompareString() == TaskFullName;

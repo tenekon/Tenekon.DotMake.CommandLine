@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using System.IO;
 using System.Text;
@@ -19,44 +18,94 @@ namespace DotMake.CommandLine.SourceGeneration
     public class CliIncrementalGenerator : IIncrementalGenerator
     {
         private static readonly Type Type = typeof(CliIncrementalGenerator);
-        private static readonly string Version = Type.Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
-        private static readonly string RoslynVersion = typeof(IIncrementalGenerator).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
-        private static readonly ConcurrentDictionary<string, int> GenerationCounts = new(StringComparer.OrdinalIgnoreCase);
+
+        private static readonly string Version = Type.Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()
+            ?.Version;
+
+        private static readonly string RoslynVersion = typeof(IIncrementalGenerator).Assembly
+            .GetCustomAttribute<AssemblyFileVersionAttribute>()
+            ?.Version;
+
+        private static readonly ConcurrentDictionary<string, int> GenerationCounts = new(
+            StringComparer.OrdinalIgnoreCase);
 
         public void Initialize(IncrementalGeneratorInitializationContext initializationContext)
         {
-            var analyzerConfigOptions = initializationContext.AnalyzerConfigOptionsProvider
-                .Select((provider, _) => provider.GlobalOptions);
+            var cliGenerationOptions = initializationContext.AnalyzerConfigOptionsProvider.Select((provider, _) =>
+            {
+                var cliGenerationOptions = new CliGenerationOptions();
+                CliGenerationOptions.Amend(cliGenerationOptions, provider.GlobalOptions);
+                return cliGenerationOptions;
+            });
 
-            var cliReferenceDependantInput = initializationContext.CompilationProvider
-                .Select((compilation, _) => new CliReferenceDependantInput(compilation));
+            var cliReferenceDependantInput = initializationContext.CompilationProvider.Combine(cliGenerationOptions)
+                .Select(static (x, _) => !x.Right.DisableSourceGeneration
+                    ? ValueTupleExtension.CreateNullable(new CliReferenceDependantInput(x.Left), x.Right)
+                    : null);
 
             var cliCommandInputs = initializationContext.SyntaxProvider.ForAttributeWithMetadataName(
-                CliCommandInput.AttributeFullName,
-                (syntaxNode, _) => CliCommandInput.IsMatch(syntaxNode),
-                (attributeSyntaxContext, _) => CliCommandInput.From(attributeSyntaxContext)
-            );
+                    CliCommandInput.AttributeFullName,
+                    (syntaxNode, _) => CliCommandInput.IsMatch(syntaxNode),
+                    (attributeSyntaxContext, _) => CliCommandInput.From(attributeSyntaxContext))
+                .Combine(cliGenerationOptions)
+                .Select(static (x, _) => !x.Right.DisableSourceGeneration
+                    ? ValueTupleExtension.CreateNullable(x.Left, x.Right)
+                    : null)
+                .SelectWhereNotNull();
 
             var cliCommandAsDelegateInputs = initializationContext.SyntaxProvider.CreateSyntaxProvider(
-                (syntaxNode, _) => CliCommandAsDelegateInput.IsMatch(syntaxNode),
-                (generatorSyntaxContext, _) => CliCommandAsDelegateInput.From(generatorSyntaxContext)
-            );
+                    (syntaxNode, _) => CliCommandAsDelegateInput.IsMatch(syntaxNode),
+                    (generatorSyntaxContext, _) => CliCommandAsDelegateInput.From(generatorSyntaxContext))
+                .Combine(cliGenerationOptions)
+                .Select(static (x, _) => !x.Right.DisableSourceGeneration
+                    ? ValueTupleExtension.CreateNullable(x.Left, x.Right)
+                    : null)
+                .SelectWhereNotNull();
 
             initializationContext.RegisterSourceOutput(
-                cliReferenceDependantInput.Combine(analyzerConfigOptions),
-                static (sourceProductionContext, tuple) => GenerateReferenceDependantSourceCode(sourceProductionContext, tuple.Left, tuple.Right)
-            );
+                cliReferenceDependantInput,
+                static (sourceProductionContext, tuple) =>
+                {
+                    if (!tuple.HasValue)
+                    {
+                        return;
+                    }
+                    GenerateReferenceDependantSourceCode(sourceProductionContext, tuple.Value.Left, tuple.Value.Right);
+                });
             initializationContext.RegisterSourceOutput(
-                cliCommandInputs.Combine(cliReferenceDependantInput).Combine(analyzerConfigOptions),
-                static (sourceProductionContext, tuple) => GenerateCommandBuilderSourceCode(sourceProductionContext, tuple.Left.Left, tuple.Left.Right, tuple.Right)
-            );
+                cliCommandInputs.Combine(cliReferenceDependantInput),
+                static (sourceProductionContext, tuple) =>
+                {
+                    if (!tuple.Right.HasValue)
+                    {
+                        return;
+                    }
+                    GenerateCommandBuilderSourceCode(
+                        sourceProductionContext,
+                        tuple.Left.Left,
+                        tuple.Right.Value.Left,
+                        tuple.Left.Right);
+                });
             initializationContext.RegisterSourceOutput(
-                cliCommandAsDelegateInputs.Combine(cliReferenceDependantInput).Combine(analyzerConfigOptions),
-                static (sourceProductionContext, tuple) => GenerateCliCommandAsDelegateSourceCode(sourceProductionContext, tuple.Left.Left, tuple.Left.Right, tuple.Right)
-            );
+                cliCommandAsDelegateInputs.Combine(cliReferenceDependantInput),
+                static (sourceProductionContext, tuple) =>
+                {
+                    if (!tuple.Right.HasValue)
+                    {
+                        return;
+                    }
+                    GenerateCliCommandAsDelegateSourceCode(
+                        sourceProductionContext,
+                        tuple.Left.Left,
+                        tuple.Right.Value.Left,
+                        tuple.Left.Right);
+                });
         }
-        
-        private static void GenerateReferenceDependantSourceCode(SourceProductionContext sourceProductionContext, CliReferenceDependantInput cliReferenceDependantInput, AnalyzerConfigOptions analyzerConfigOptions)
+
+        private static void GenerateReferenceDependantSourceCode(
+            SourceProductionContext sourceProductionContext,
+            CliReferenceDependantInput cliReferenceDependantInput,
+            CliGenerationOptions cliGenerationOptions)
         {
             try
             {
@@ -64,12 +113,17 @@ namespace DotMake.CommandLine.SourceGeneration
 
                 if (!CheckLanguage(cliReferenceDependantInput.Language))
                 {
-                    sourceProductionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ErrorUnsupportedLanguage, Location.None));
+                    sourceProductionContext.ReportDiagnostic(
+                        Diagnostic.Create(DiagnosticDescriptors.ErrorUnsupportedLanguage, Location.None));
                     return;
                 }
                 if (!CheckLanguageVersion(cliReferenceDependantInput.LanguageVersion, out var supportedMinVersion))
                 {
-                    sourceProductionContext.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ErrorUnsupportedLanguageVersion, Location.None, supportedMinVersion));
+                    sourceProductionContext.ReportDiagnostic(
+                        Diagnostic.Create(
+                            DiagnosticDescriptors.ErrorUnsupportedLanguageVersion,
+                            Location.None,
+                            supportedMinVersion));
                     return;
                 }
 
@@ -83,38 +137,37 @@ namespace DotMake.CommandLine.SourceGeneration
                     var name = SymbolExtensions.GetName(CliReferenceDependantInput.ModuleInitializerAttributeFullName);
                     sourceProductionContext.AddSource(
                         $"({name}).g.cs",
-                        GetSourceTextFromEmbeddedResource($"{name}.cs", analyzerConfigOptions)
-                    );
+                        GetSourceTextFromEmbeddedResource($"{name}.cs", cliGenerationOptions));
                 }
 
                 //For supporting Required modifier before net7.0 (need LangVersion 11)
-                if (cliReferenceDependantInput.LanguageVersion > (int)LanguageVersion.CSharp10 && !cliReferenceDependantInput.HasRequiredMember)
+                if (cliReferenceDependantInput.LanguageVersion > (int)LanguageVersion.CSharp10
+                    && !cliReferenceDependantInput.HasRequiredMember)
                 {
                     var name = SymbolExtensions.GetName(CliReferenceDependantInput.RequiredMemberAttributeFullName);
                     sourceProductionContext.AddSource(
                         $"({name}).g.cs",
-                        GetSourceTextFromEmbeddedResource($"{name}.cs", analyzerConfigOptions)
-                    );
+                        GetSourceTextFromEmbeddedResource($"{name}.cs", cliGenerationOptions));
                 }
 
                 if (cliReferenceDependantInput.HasMsDependencyInjectionAbstractions
                     && !cliReferenceDependantInput.HasCliServiceProviderExtensions)
                 {
-                    var name = SymbolExtensions.GetName(CliReferenceDependantInput.CliServiceProviderExtensionsFullName);
+                    var name = SymbolExtensions.GetName(
+                        CliReferenceDependantInput.CliServiceProviderExtensionsFullName);
                     sourceProductionContext.AddSource(
                         $"({name}).g.cs",
-                        GetSourceTextFromEmbeddedResource($"{name}.cs", analyzerConfigOptions)
-                    );
+                        GetSourceTextFromEmbeddedResource($"{name}.cs", cliGenerationOptions));
                 }
 
                 if (cliReferenceDependantInput.HasMsDependencyInjection
                     && !cliReferenceDependantInput.HasCliServiceCollectionExtensions)
                 {
-                    var name = SymbolExtensions.GetName(CliReferenceDependantInput.CliServiceCollectionExtensionsFullName);
+                    var name = SymbolExtensions.GetName(
+                        CliReferenceDependantInput.CliServiceCollectionExtensionsFullName);
                     sourceProductionContext.AddSource(
                         $"({name}).g.cs",
-                        GetSourceTextFromEmbeddedResource($"{name}.cs", analyzerConfigOptions)
-                    );
+                        GetSourceTextFromEmbeddedResource($"{name}.cs", cliGenerationOptions));
                 }
             }
             catch (Exception exception)
@@ -126,24 +179,28 @@ namespace DotMake.CommandLine.SourceGeneration
             }
         }
 
-        private static void GenerateCommandBuilderSourceCode(SourceProductionContext sourceProductionContext, CliCommandInput cliCommandInput, CliReferenceDependantInput cliReferenceDependantInput, AnalyzerConfigOptions analyzerConfigOptions)
+        private static void GenerateCommandBuilderSourceCode(
+            SourceProductionContext sourceProductionContext,
+            CliCommandInput cliCommandInput,
+            CliReferenceDependantInput cliReferenceDependantInput,
+            CliGenerationOptions cliGenerationOptions)
         {
             try
             {
                 //Console.Beep(1000, 200); // For testing, how many times the generator is hit
 
-                if (!CheckLanguage(cliCommandInput.Language)
-                    || !CheckLanguageVersion(cliCommandInput.LanguageVersion))
+                if (!CheckLanguage(cliCommandInput.Language) || !CheckLanguageVersion(cliCommandInput.LanguageVersion))
                     return;
 
                 var cliCommandOutput = new CliCommandOutput(cliCommandInput, cliReferenceDependantInput, null);
                 cliCommandOutput.ReportDiagnostics(sourceProductionContext);
 
-                if (cliCommandInput.HasProblem) //This should be checked after creating CliCommandOutput, as we may add some problems there
+                if (cliCommandInput
+                    .HasProblem) //This should be checked after creating CliCommandOutput, as we may add some problems there
                     return;
 
                 var sb = new CodeStringBuilder();
-                AppendGeneratedCodeHeader(sb, cliCommandOutput.GeneratedClassFullName, analyzerConfigOptions);
+                AppendGeneratedCodeHeader(sb, cliCommandOutput.GeneratedClassFullName, cliGenerationOptions);
                 cliCommandOutput.AppendCSharpDefineString(sb, true);
 
                 var generatedClassSourceCode = sb.ToString();
@@ -167,7 +224,11 @@ namespace DotMake.CommandLine.SourceGeneration
             }
         }
 
-        private static void GenerateCliCommandAsDelegateSourceCode(SourceProductionContext sourceProductionContext, CliCommandAsDelegateInput cliCommandAsDelegateInput, CliReferenceDependantInput cliReferenceDependantInput, AnalyzerConfigOptions analyzerConfigOptions)
+        private static void GenerateCliCommandAsDelegateSourceCode(
+            SourceProductionContext sourceProductionContext,
+            CliCommandAsDelegateInput cliCommandAsDelegateInput,
+            CliReferenceDependantInput cliReferenceDependantInput,
+            CliGenerationOptions cliGenerationOptions)
         {
             try
             {
@@ -182,33 +243,39 @@ namespace DotMake.CommandLine.SourceGeneration
 
                 var cliCommandAsDelegateOutput = new CliCommandAsDelegateOutput(cliCommandAsDelegateInput);
                 cliCommandAsDelegateOutput.ReportDiagnostics(sourceProductionContext);
-                
+
                 if (cliCommandAsDelegateInput.HasProblem)
                     return;
 
                 var sb = new CodeStringBuilder();
-                AppendGeneratedCodeHeader(sb, cliCommandAsDelegateOutput.GeneratedClassFullName, analyzerConfigOptions);
+                AppendGeneratedCodeHeader(sb, cliCommandAsDelegateOutput.GeneratedClassFullName, cliGenerationOptions);
                 cliCommandAsDelegateOutput.AppendCSharpDefineString(sb);
 
                 var generatedClassSourceCode = sb.ToString();
 
-                sourceProductionContext.AddSource($"{cliCommandAsDelegateOutput.GeneratedClassName}.g.cs", generatedClassSourceCode);
+                sourceProductionContext.AddSource(
+                    $"{cliCommandAsDelegateOutput.GeneratedClassName}.g.cs",
+                    generatedClassSourceCode);
 
                 //Parse generated class to generate a builder for it
                 var syntaxTree = CSharpSyntaxTree.ParseText(
                     generatedClassSourceCode,
-                    (CSharpParseOptions)cliCommandAsDelegateInput.SyntaxNode.SyntaxTree.Options
-                );
+                    (CSharpParseOptions)cliCommandAsDelegateInput.SyntaxNode.SyntaxTree.Options);
                 var compilation = cliCommandAsDelegateInput.SemanticModel.Compilation.AddSyntaxTrees(syntaxTree);
-                var generatedSymbol = compilation.GetTypeByMetadataName(cliCommandAsDelegateOutput.GeneratedClassFullName);
+                var generatedSymbol = compilation.GetTypeByMetadataName(
+                    cliCommandAsDelegateOutput.GeneratedClassFullName);
                 var cliCommandInput = new CliCommandInput(
                     generatedSymbol,
                     generatedSymbol?.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax(),
-                    generatedSymbol?.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToCompareString() == CliCommandInput.AttributeFullName),
+                    generatedSymbol?.GetAttributes()
+                        .FirstOrDefault(a => a.AttributeClass.ToCompareString() == CliCommandInput.AttributeFullName),
                     compilation.GetSemanticModel(syntaxTree),
-                    null
-                    );
-                GenerateCommandBuilderSourceCode(sourceProductionContext, cliCommandInput, cliReferenceDependantInput, analyzerConfigOptions);
+                    null);
+                GenerateCommandBuilderSourceCode(
+                    sourceProductionContext,
+                    cliCommandInput,
+                    cliReferenceDependantInput,
+                    cliGenerationOptions);
             }
             catch (Exception exception)
             {
@@ -227,7 +294,6 @@ namespace DotMake.CommandLine.SourceGeneration
         private static bool CheckLanguageVersion(int languageVersion)
         {
             return CheckLanguageVersion(languageVersion, out _);
-
         }
 
         private static bool CheckLanguageVersion(int languageVersion, out string supportedMinVersion)
@@ -239,12 +305,15 @@ namespace DotMake.CommandLine.SourceGeneration
             return (languageVersion >= (int)LanguageVersion.CSharp9);
         }
 
-        private static void AppendGeneratedCodeHeader(CodeStringBuilder sb, string generationKey, AnalyzerConfigOptions analyzerConfigOptions)
+        private static void AppendGeneratedCodeHeader(
+            CodeStringBuilder sb,
+            string generationKey,
+            CliGenerationOptions cliGenerationOptions)
         {
             //Ensure generation is counted separately for different projects and target frameworks.
-            if (analyzerConfigOptions.TryGetValue("build_property.projectdir", out var projectDir))
+            if (cliGenerationOptions.ProjectDir is { } projectDir)
                 generationKey += "|" + projectDir;
-            if (analyzerConfigOptions.TryGetValue("build_property.targetframework", out var targetFramework))
+            if (cliGenerationOptions.TargetFramework is { } targetFramework)
                 generationKey += "|" + targetFramework;
             if (GenerationCounts.TryGetValue(generationKey, out var generationCount))
                 GenerationCounts[generationKey] = ++generationCount;
@@ -260,25 +329,23 @@ namespace DotMake.CommandLine.SourceGeneration
             sb.AppendLine();
         }
 
-        private static SourceText GetSourceTextFromEmbeddedResource(string fileName, AnalyzerConfigOptions analyzerConfigOptions)
+        private static SourceText GetSourceTextFromEmbeddedResource(
+            string fileName,
+            CliGenerationOptions cliGenerationOptions)
         {
             var resourceName = $"{Type.Namespace}.Embedded.{fileName}";
 
-            using (var resourceStream = Type.Assembly.GetManifestResourceStream(resourceName))
-            {
-                if (resourceStream == null)
-                    throw new Exception($"Embedded resource '{fileName}' is not found in assembly '{Type.Assembly}'.");
+            using var resourceStream = Type.Assembly.GetManifestResourceStream(resourceName);
+            if (resourceStream == null)
+                throw new Exception($"Embedded resource '{fileName}' is not found in assembly '{Type.Assembly}'.");
 
-                using (var streamReader = new StreamReader(resourceStream))
-                {
-                    var sb = new CodeStringBuilder();
+            using var streamReader = new StreamReader(resourceStream);
+            var sb = new CodeStringBuilder();
 
-                    AppendGeneratedCodeHeader(sb, resourceName, analyzerConfigOptions);
-                    sb.AppendLine(streamReader.ReadToEnd());
+            AppendGeneratedCodeHeader(sb, resourceName, cliGenerationOptions);
+            sb.AppendLine(streamReader.ReadToEnd());
 
-                    return SourceText.From(sb.ToString(), Encoding.UTF8);
-                }
-            }
+            return SourceText.From(sb.ToString(), Encoding.UTF8);
         }
     }
 }

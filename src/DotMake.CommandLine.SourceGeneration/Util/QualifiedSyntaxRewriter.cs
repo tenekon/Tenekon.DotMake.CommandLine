@@ -12,7 +12,7 @@ namespace DotMake.CommandLine.SourceGeneration.Util
         {
             this.semanticModel = semanticModel;
         }
-        
+
         public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
         {
             if (node.Parent != null && node.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
@@ -21,7 +21,7 @@ namespace DotMake.CommandLine.SourceGeneration.Util
             var symbolInfo = semanticModel.GetSymbolInfo(node);
             if (symbolInfo.Symbol is null) return node; // give up
 
-            var identifierNameSyntax =  SyntaxFactory.IdentifierName(symbolInfo.Symbol.ToReferenceString());
+            var identifierNameSyntax = SyntaxFactory.IdentifierName(symbolInfo.Symbol.ToReferenceString());
 
             //if inside interpolation string wrap it with () as types with global:: will cause error
             //because : character needs to be escaped in interpolation strings

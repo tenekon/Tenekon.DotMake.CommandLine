@@ -183,7 +183,7 @@ namespace DotMake.CommandLine
                     Console.Write($@" (level {level})");
                     ConsoleExtensions.SetColor(theme.DefaultColor);
                 }
-                
+
                 Console.WriteLine();
             }
         }

@@ -8,8 +8,8 @@ namespace TestApp.Commands
     // A root cli command to test short form aliases and names
 
     [CliCommand(
-        //NameAutoGenerate = CliNameAutoGenerate.Options
-        //ShortFormAutoGenerate = CliNameAutoGenerate.Options | CliNameAutoGenerate.Arguments
+    //NameAutoGenerate = CliNameAutoGenerate.Options
+    //ShortFormAutoGenerate = CliNameAutoGenerate.Options | CliNameAutoGenerate.Arguments
     )]
     public class ShortFormCliCommand
     {
@@ -28,7 +28,7 @@ namespace TestApp.Commands
         [CliOption]
         public string Sha256 { get; set; } = "";
 
-        [CliOption(Alias = null, Aliases = new []{" ", "opt1"})]
+        [CliOption(Alias = null, Aliases = new[] { " ", "opt1" })]
         public string Option1 { get; set; } = "";
 
         [CliOption(Aliases = null)]
@@ -60,10 +60,10 @@ namespace TestApp.Commands
             }
         }
 
-        [CliCommand(Aliases = new []{"op1"} /*, Name = "-o2"*/)]
+        [CliCommand(Aliases = new[] { "op1" } /*, Name = "-o2"*/)]
         public class Option1Command
         {
-            
+
         }
 
         [CliCommand(Name = "cmd", Alias = "cl")]

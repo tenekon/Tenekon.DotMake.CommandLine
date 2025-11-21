@@ -160,7 +160,7 @@ namespace DotMake.CommandLine
         public Command BuildWithParent(CliBindingContext bindingContext, CliCommandBuilder parent)
         {
             if (parent == null) //if no parent, treat as single command build
-                return Build(bindingContext); 
+                return Build(bindingContext);
 
             //Should be before Build
             //Inherit settings from a parent command builder.
@@ -369,7 +369,7 @@ namespace DotMake.CommandLine
 
             return GetParents(definitionType);
         }
-        
+
         /// <summary>
         /// Gets the command builders that are registered as nested/external parents of a child definition.
         /// </summary>

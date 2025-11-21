@@ -12,10 +12,12 @@
       Condition="'$(PublishTrimmed)' == 'true' AND '$(PublishAot)' != 'true' AND '$(PublishDir)' == ''">bin\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish-trimmed</PublishDir>
     <PublishDir
       Condition="'$(PublishAot)' == 'true' AND '$(PublishDir)' == ''">bin\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish-aot</PublishDir>
+
+    <RestoreSources>../DotMake.CommandLine/bin/$(Configuration)/$(RestoreSources)</RestoreSources>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotMake.CommandLine" Version="$(Version)" />
+    <PackageReference Include="Tenekon.DotMake.CommandLine" Version="$(Version)" />
     <Compile Include="..\TestApp\**\*.cs" />
     <Compile Remove="..\TestApp\bin\**\*" />
     <Compile Remove="..\TestApp\obj\**\*" />

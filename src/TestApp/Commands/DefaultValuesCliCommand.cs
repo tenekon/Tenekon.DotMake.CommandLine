@@ -40,7 +40,7 @@ namespace TestApp.Commands
         [CliOption]
         public string Opt9 { get; set; } = $"value {StaticFileAccess}";
 
-        [CliOption] public string Opt10 { get; set; } = new ('-', 5);
+        [CliOption] public string Opt10 { get; set; } = new('-', 5);
 
         public static FileAccess GetFileAccess()
         {

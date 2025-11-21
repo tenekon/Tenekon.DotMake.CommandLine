@@ -29,7 +29,7 @@ namespace DotMake.CommandLine.Binding
             Value = value;
             Result = result;
         }
-        
+
         internal static ArgumentConversionResult Failure(ArgumentResult argumentResult, string error, ArgumentConversionResultType reason)
             => new(argumentResult, error, reason);
 

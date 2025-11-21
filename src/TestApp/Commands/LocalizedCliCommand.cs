@@ -10,7 +10,7 @@ namespace TestApp.Commands
     // If the property in the `nameof` operator expression does not point to a resource property, then the name of that property will be used as usual.
     // The reason we use `nameof` operator is that attributes in `.NET` only accept compile-time constants and you get `CS0182` error if not,
     // so specifying resource property directly is not possible as it's not a compile-time constant but it's a static property access.
-    
+
     [CliCommand(Description = nameof(TestResources.CommandDescription))]
     internal class LocalizedCliCommand
     {

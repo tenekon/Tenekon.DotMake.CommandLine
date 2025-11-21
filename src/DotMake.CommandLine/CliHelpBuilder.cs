@@ -92,7 +92,7 @@ namespace DotMake.CommandLine
                 return;
             }
 
-            var getLayout = customGetLayout ?? GetLayout;     
+            var getLayout = customGetLayout ?? GetLayout;
             var writeSections = getLayout(helpContext).ToArray();
             foreach (var writeSection in writeSections)
             {
@@ -136,7 +136,7 @@ namespace DotMake.CommandLine
             var description = helpContext.Command.Description
                               ?? (isRoot ? ExecutableInfo.AssemblyInfo.Description : string.Empty);
             const string separator = ": ";
-            
+
             var hasName = !string.IsNullOrWhiteSpace(name);
             var hasDescription = !string.IsNullOrWhiteSpace(description);
 
@@ -450,7 +450,7 @@ namespace DotMake.CommandLine
                     if (parentCommand.Parents.FirstOrDefault() == null)
                         yield return ExecutableInfo.ExecutableName;
                     else
-                    /*MODIFY*/
+                        /*MODIFY*/
                         yield return parentCommand.Name;
 
                     if (parentCommand.HasArguments())
@@ -842,7 +842,7 @@ namespace DotMake.CommandLine
 
         private static string GetRequiredLabel()
         {
-            var label =  LocalizationResources.HelpOptionsRequiredLabel()
+            var label = LocalizationResources.HelpOptionsRequiredLabel()
                 .TrimStart('(').TrimEnd(')').ToLowerInvariant();
 
             return $"[{label}]";

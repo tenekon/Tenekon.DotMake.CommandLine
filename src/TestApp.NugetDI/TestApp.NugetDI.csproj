@@ -8,10 +8,12 @@
 
     <!-- Generated files output path, excluding from compile and cleaning before build, are all handled in Directory.Build.targets  -->
     <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+      
+    <RestoreSources>../DotMake.CommandLine/bin/$(Configuration)/$(RestoreSources)</RestoreSources>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotMake.CommandLine" Version="$(Version)" />
+    <PackageReference Include="Tenekon.DotMake.CommandLine" Version="$(Version)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
   </ItemGroup>
 

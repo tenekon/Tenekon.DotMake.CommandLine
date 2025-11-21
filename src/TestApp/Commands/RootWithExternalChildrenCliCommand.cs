@@ -18,7 +18,7 @@ namespace TestApp.Commands
 
     [CliCommand(
         Description = "A root cli command with external children",
-        Children = new []
+        Children = new[]
         {
             typeof(ExternalLevel1SubCliCommand),
         }

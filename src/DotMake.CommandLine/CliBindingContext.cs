@@ -39,7 +39,7 @@ namespace DotMake.CommandLine
 
             return (TDefinition)Create(definitionType);
         }
-        
+
         /// <summary>
         /// Creates a new instance of the command definition class but without any binding.
         /// This is useful for example when you need to instantiate a definition class when using dependency injection.

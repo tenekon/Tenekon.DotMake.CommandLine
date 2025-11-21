@@ -52,8 +52,8 @@ namespace DotMake.CommandLine
         {
             this.nameAutoGenerate = nameAutoGenerate ?? parentNamer?.nameAutoGenerate ?? CliCommandAttribute.Default.NameAutoGenerate;
             this.nameCasingConvention = nameCasingConvention ?? parentNamer?.nameCasingConvention ?? CliCommandAttribute.Default.NameCasingConvention;
-            this.namePrefixConvention = namePrefixConvention ?? parentNamer ?.namePrefixConvention ?? CliCommandAttribute.Default.NamePrefixConvention;
-            this.shortFormAutoGenerate = shortFormAutoGenerate ?? parentNamer ?.shortFormAutoGenerate ?? CliCommandAttribute.Default.ShortFormAutoGenerate;
+            this.namePrefixConvention = namePrefixConvention ?? parentNamer?.namePrefixConvention ?? CliCommandAttribute.Default.NamePrefixConvention;
+            this.shortFormAutoGenerate = shortFormAutoGenerate ?? parentNamer?.shortFormAutoGenerate ?? CliCommandAttribute.Default.ShortFormAutoGenerate;
             this.shortFormPrefixConvention = shortFormPrefixConvention ?? parentNamer?.shortFormPrefixConvention ?? CliCommandAttribute.Default.ShortFormPrefixConvention;
             this.parentNamer = parentNamer;
         }
@@ -220,7 +220,7 @@ namespace DotMake.CommandLine
                 throw ExceptionUtil.ParameterNull(nameof(symbolName));
             if (string.IsNullOrWhiteSpace(symbolName))
                 throw ExceptionUtil.ParameterEmptyString(nameof(symbolName));
-            
+
             alias = alias.Trim();
             alias = CliStringUtil.AddPrefix(alias, namePrefixConvention); //will ignore if already has a prefix
 

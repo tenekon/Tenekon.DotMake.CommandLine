@@ -10,7 +10,7 @@ namespace DotMake.CommandLine
     {
         internal CliExtensions()
         {
-            
+
         }
     }
 }

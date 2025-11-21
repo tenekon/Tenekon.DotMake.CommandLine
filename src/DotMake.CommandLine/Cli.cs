@@ -147,7 +147,7 @@ namespace DotMake.CommandLine
             return await parser.RunAsync(commandLine, cancellationToken);
         }
 
-        
+
         /// <summary>
         /// Parses the command line arguments and runs the indicated command as delegate.
         /// </summary>
@@ -176,7 +176,7 @@ namespace DotMake.CommandLine
 
             return parser.Run();
         }
-        
+
         /// <summary>
         /// Parses the command line arguments and runs the indicated command as delegate.
         /// </summary>

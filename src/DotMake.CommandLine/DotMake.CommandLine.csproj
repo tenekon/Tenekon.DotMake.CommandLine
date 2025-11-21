@@ -70,9 +70,9 @@
     <!-- Ensure that the source generator is built together with this project -->
     <ProjectReference Include="..\$(MSBuildProjectName).SourceGeneration\$(MSBuildProjectName).SourceGeneration.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <PackAsAnalyzer>true</PackAsAnalyzer>
     </ProjectReference>
-    <!-- Package the generator in the analyzer directory of the nuget package -->
-    <None Include="..\$(MSBuildProjectName).SourceGeneration\$(OutputPath)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+
     <!--
       Package MSBuild .props file in the nuget package
       https://learn.microsoft.com/en-us/nuget/concepts/msbuild-props-and-targets
@@ -83,5 +83,27 @@
   <ItemGroup>
     <None Remove="*.DotSettings" />
   </ItemGroup>
+
+  <!-- Package the generator in the analyzer directory of the nuget package -->
+  <Target Name="PackProjectAnalyzerItems" BeforeTargets="_GetPackageFiles">
+
+    <!-- Build (or at least compute) outputs of the marked ProjectReferences -->
+    <MSBuild Projects="@(ProjectReference)"
+      Condition="'%(ProjectReference.PackAsAnalyzer)' == 'true'"
+      Targets="GetTargetPath"
+      Properties="Configuration=$(Configuration)"
+      BuildInParallel="true">
+      <Output TaskParameter="TargetOutputs" ItemName="_AnalyzerAssembliesToPack" />
+    </MSBuild>
+
+    <!-- Turn those outputs into regular Pack items -->
+    <ItemGroup>
+      <None Include="@(_AnalyzerAssembliesToPack)"
+        Pack="true"
+        Visible="false"
+        PackagePath="analyzers/dotnet/cs">
+      </None>
+    </ItemGroup>
+  </Target>
 
 </Project>

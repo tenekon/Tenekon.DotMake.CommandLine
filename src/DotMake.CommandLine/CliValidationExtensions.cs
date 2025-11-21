@@ -24,7 +24,7 @@ namespace DotMake.CommandLine
         {
             AddValidator(option.GetArgument(), validationRules);
         }
-        
+
         /// <summary>
         /// Adds validation rules to an argument.
         /// Validation rules can be used to provide errors based on user input.
@@ -219,7 +219,7 @@ namespace DotMake.CommandLine
             var path = validationResult.Value;
             var root = Path.GetPathRoot(path) ?? string.Empty;
             var parts = path.Substring(root.Length)
-                .Split(new []{ Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+                .Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var part in parts)
             {

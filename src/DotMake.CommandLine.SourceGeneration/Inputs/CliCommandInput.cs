@@ -41,7 +41,7 @@ namespace DotMake.CommandLine.SourceGeneration.Inputs
             ParentSymbol = (Parent != null)
                 ? Parent.Symbol //Nested class for sub-command
                 : ParentArgument; //External class for sub-command
-            
+
             Analyze(symbol);
 
             if (HasProblem)
@@ -79,7 +79,7 @@ namespace DotMake.CommandLine.SourceGeneration.Inputs
                                     || attributeFullName == CliOptionInput.AttributeFullName
                                     || attributeFullName == CliArgumentInput.AttributeFullName);
                         });
-                   
+
                     //Property with [CliOption] or [CliArgument] attribute
                     if (propertyAttributeData != null)
                     {
@@ -166,7 +166,7 @@ namespace DotMake.CommandLine.SourceGeneration.Inputs
 
         public INamedTypeSymbol ParentSymbol { get; }
 
-       
+
         public AttributeArguments AttributeArguments { get; }
 
         public int Order { get; }
@@ -184,7 +184,7 @@ namespace DotMake.CommandLine.SourceGeneration.Inputs
         public CliNameAutoGenerate? ShortFormAutoGenerate { get; }
 
         public CliNamePrefixConvention? ShortFormPrefixConvention { get; }
-        
+
 
         public CliCommandHandlerInput Handler { get; }
 

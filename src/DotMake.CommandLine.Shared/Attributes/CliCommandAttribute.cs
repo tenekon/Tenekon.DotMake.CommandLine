@@ -144,7 +144,7 @@ namespace DotMake.CommandLine
         /// <para>The aliases will be also displayed in usage help of the command line application.</para>
         /// </summary>
         public string[] Aliases { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the parent of the command. This property is used when you prefer to use a non-nested class for a subcommand,
         /// i.e. when you want to separate root command and subcommands into different classes/files.
@@ -234,7 +234,7 @@ namespace DotMake.CommandLine
         /// <para>Default is <see cref="CliNamePrefixConvention.SingleHyphen"/> (e.g. <c>-o</c>).</para>
         /// </summary>
         public CliNamePrefixConvention ShortFormPrefixConvention { get; set; } = CliNamePrefixConvention.SingleHyphen;
-        
+
         internal static CliCommandAttribute Default { get; } = new();
     }
 }

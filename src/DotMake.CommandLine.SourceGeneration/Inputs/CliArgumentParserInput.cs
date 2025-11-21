@@ -78,7 +78,7 @@ namespace DotMake.CommandLine.SourceGeneration.Inputs
 
         public ITypeSymbol Type { get; }
 
-        public ITypeSymbol ItemType{ get; }
+        public ITypeSymbol ItemType { get; }
 
         public bool TypeNeedsConverter { get; }
 
@@ -124,7 +124,7 @@ namespace DotMake.CommandLine.SourceGeneration.Inputs
 
             return true;
         }
-        
+
         private static IMethodSymbol FindEnumerableConverter(ITypeSymbol type, ITypeSymbol itemType, Compilation compilation)
         {
             var underlyingType = type.GetUnderlyingTypeIfNullable();

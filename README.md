@@ -41,13 +41,23 @@ PM> Install-Package DotMake.CommandLine
   If your target framework is below net5.0, you also need `<LangVersion>9.0</LangVersion>` tag (minimum) in your .csproj file.
 - Visual Studio 2022 v17.3+ or .NET SDK 6.0.407+ (when building via `dotnet` cli).  
   Our incremental source generator requires performance features added first in these versions.
-- Usually a console app project but you can also use a class library project which will be consumed later.  
+- Usually a console app project but you can also use a class library project which will be consumed later.
 
 ## Usage
 
 DotMake.CommandLine offers 2 models: class-based model and delegate-based model.
 Delegate-based model is useful for simple apps, for more complex apps, you should use the class-based model 
 because you can have sub-commands and command inheritance.
+
+### Source generator options
+
+You can configure how the source generator works per project by defining [MSBuild properties](https://learn.microsoft.com/en-us/visualstudio/msbuild/propertygroup-element-msbuild?view=visualstudio). The following properties are recognized by the source generator:
+
+- `SatelliteResourceLanguages` (default "en") — Prevent satellite resource DLL pollution (which come from System.CommandLine package) in bin folder,
+      by setting a specific culture in referencing project, if not already set.
+      Empty value (default) for SatelliteResourceLanguages property causes copying of all culture subfolders and DLLs to bin folder,
+      so we opt for "en" culture by default, to prevent copying of satellite resource DLLs.
+- `DotMakeCommandLineDisableSourceGeneration` (default "false") — Disables the generation of sources, but does not prevent the source generator from being active. This approach is necessary because NuGet's infrastructure does not allow to exclude the source generator/analyzer from the compilation process at all. (For more regarding this issue, see: https://github.com/dotnet/sdk/issues/1212, https://github.com/dotnet/roslyn/issues/55518, https://github.com/dotnet/sdk/issues/30872)
 
 ### Class-based model
 

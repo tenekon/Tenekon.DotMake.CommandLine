@@ -47,7 +47,7 @@ namespace DotMake.CommandLine
         {
             return bindingContext.Bind(ParseResult, definitionType, returnEmpty);
         }
-        
+
 
         /// <inheritdoc cref="CliBindingContext.BindCalled" />
         public object BindCalled()

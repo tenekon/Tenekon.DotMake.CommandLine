@@ -84,7 +84,7 @@ namespace DotMake.CommandLine.SourceGeneration.Inputs
         public override IEnumerable<Diagnostic> GetAllDiagnostics()
         {
             return base.GetAllDiagnostics() //self
-                .Concat(ArgumentParser.GetAllDiagnostics()); 
+                .Concat(ArgumentParser.GetAllDiagnostics());
         }
 
         public bool Equals(CliArgumentInput other)

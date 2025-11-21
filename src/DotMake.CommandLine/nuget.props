@@ -8,6 +8,12 @@
       so we opt for "en" culture by default, to prevent copying of satellite resource DLLs.
     -->
     <SatelliteResourceLanguages Condition="'$(SatelliteResourceLanguages)' == ''">en</SatelliteResourceLanguages>
+    <DotMakeCommandLineDisableSourceGeneration Condition="'$(DotMakeCommandLineDisableSourceGeneration)' == ''">false</DotMakeCommandLineDisableSourceGeneration>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- CompilerVisibleProperty makes MSBuild properties visible to source generator. -->
+    <CompilerVisibleProperty Include="DotMakeCommandLineDisableSourceGeneration" />
+  </ItemGroup>
 
 </Project>

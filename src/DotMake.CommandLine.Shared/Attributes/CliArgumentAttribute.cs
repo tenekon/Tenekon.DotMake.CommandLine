@@ -76,7 +76,7 @@ namespace DotMake.CommandLine
         /// Gets or sets the name of the argument when displayed in help.
         /// </summary>
         public string HelpName { get; set; }
-        
+
         /// <summary>
         /// Gets or sets a value indicating whether the argument is required when its parent command is invoked.
         /// Default is auto-detected.

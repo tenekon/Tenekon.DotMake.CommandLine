@@ -12,7 +12,7 @@ namespace TestApp.Commands
     // Validation rules can be combined.
     // `ValidationPattern` property allows setting a regular expression pattern for custom validation,
     // and `ValidationMessage` property allows setting a custom error message to show when `ValidationPattern` does not match.
-    
+
     [CliCommand]
     public class ValidationCliCommand
     {

@@ -4,19 +4,20 @@
     <!-- generator projects must be netstandard2.0 -->
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>10.0</LangVersion>
-    <!-- 
+    <!--
       should be set for analyzer/generators projects to suppress RS1036 (enables checking of banned types):
-      https://stackoverflow.com/a/75767670 
+      https://stackoverflow.com/a/75767670
     -->
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <Description>Incremental source generator for DotMake.CommandLine.</Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <Import Project="..\DotMake.CommandLine.Shared\DotMake.CommandLine.Shared.projitems" Label="Shared" />
 
   <ItemGroup>
-    <!-- 
-    Microsoft.CodeAnalysis.CSharp 4.0.1 is the first version that can be used with the .NET 6.0 SDK 
+    <!--
+    Microsoft.CodeAnalysis.CSharp 4.0.1 is the first version that can be used with the .NET 6.0 SDK
     https://github.com/dotnet/roslyn/blob/main/docs/wiki/NuGet-packages.md
     Microsoft.CodeAnalysis.CSharp 4.3.1 is the first version that adds ForAttributeWithMetadataName
     Requires .NET SDK 6.0.407 (Included in Visual Studio 17.3)

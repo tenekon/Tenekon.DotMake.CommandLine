@@ -60,7 +60,7 @@ namespace TestApp.Commands
                     return dates;
 
                 case nameof(FruitArgument):
-                    return new [] { "apple", "orange", "banana" }
+                    return new[] { "apple", "orange", "banana" }
                         .Select(value => new CompletionItem(value));
             }
 

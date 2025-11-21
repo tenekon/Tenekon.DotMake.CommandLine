@@ -185,7 +185,7 @@ namespace DotMake.CommandLine.SourceGeneration.Inputs
             public AttributeData AttributeData { get; internal set; }
 
             public AttributeSyntax AttributeSyntax => AttributeData?.ApplicationSyntaxReference?.GetSyntax() as AttributeSyntax;
-                
+
             public ExpressionSyntax DefaultSyntax { get; internal set; }
         }
     }
