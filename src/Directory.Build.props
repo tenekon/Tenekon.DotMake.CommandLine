@@ -4,7 +4,7 @@
     <!-- AssemblyTitle needs to be set in .targets which is imported after .csproj --> 
     <AssemblyName>Tenekon.$(MSBuildProjectName)</AssemblyName>
     <!-- https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#generateassemblyinfo -->
-    <VersionPrefix>3.0.1</VersionPrefix>
+    <VersionPrefix>3.0.2</VersionPrefix>
     <Product>Tenekon DotMake Command-Line</Product>
     <Company>Tenekon</Company>
     <!-- Copyright is also used for NuGet metadata -->
