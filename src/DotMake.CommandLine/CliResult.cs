@@ -1,5 +1,7 @@
 using System;
 using System.CommandLine;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotMake.CommandLine
 {
@@ -11,7 +13,9 @@ namespace DotMake.CommandLine
     {
         private readonly CliBindingContext bindingContext;
 
-        internal CliResult(CliBindingContext bindingContext, ParseResult parseResult)
+        internal CliResult(
+            CliBindingContext bindingContext,
+            ParseResult parseResult)
         {
             this.bindingContext = bindingContext;
             ParseResult = parseResult;
@@ -21,7 +25,6 @@ namespace DotMake.CommandLine
         /// Get the results of parsing a command line input based on a specific parser configuration.
         /// </summary>
         public ParseResult ParseResult { get; }
-
 
         /// <inheritdoc cref="CliBindingContext.Create{TDefinition}" />
         public TDefinition Create<TDefinition>()

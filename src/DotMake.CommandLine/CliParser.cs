@@ -15,7 +15,7 @@ namespace DotMake.CommandLine
     /// <summary>
     /// Represents a CLI parser configured for a specific command with grammar and behaviors.
     /// </summary>
-    public class CliParser
+    public class CliParser : IParseResultRunner
     {
         private readonly CliBindingContext bindingContext = new();
         private readonly CliSettings settings;
@@ -53,18 +53,24 @@ namespace DotMake.CommandLine
                 RootCommand = rootCommand;
 
                 //CliRootCommand constructor already adds HelpOption and VersionOption so remove them
-                foreach (var option in rootCommand.Options.Where(option => option is HelpOption or VersionOption).ToArray())
+                foreach (var option in rootCommand.Options.Where(option => option is HelpOption or VersionOption)
+                             .ToArray())
                     rootCommand.Options.Remove(option);
 
-                var namePrefixConvention = commandBuilder.NamePrefixConvention ?? CliCommandAttribute.Default.NamePrefixConvention;
-                var shortFormPrefixConvention = commandBuilder.ShortFormPrefixConvention ?? CliCommandAttribute.Default.ShortFormPrefixConvention;
-                var shortFormAutoGenerate = commandBuilder.ShortFormAutoGenerate ?? CliCommandAttribute.Default.ShortFormAutoGenerate;
+                var namePrefixConvention = commandBuilder.NamePrefixConvention
+                    ?? CliCommandAttribute.Default.NamePrefixConvention;
+                var shortFormPrefixConvention = commandBuilder.ShortFormPrefixConvention
+                    ?? CliCommandAttribute.Default.ShortFormPrefixConvention;
+                var shortFormAutoGenerate = commandBuilder.ShortFormAutoGenerate
+                    ?? CliCommandAttribute.Default.ShortFormAutoGenerate;
 
                 var helpOption = new HelpOption(
                     CliStringUtil.AddPrefix("help", namePrefixConvention),
                     //Regardless of convention, add all short form aliases as help is a special option
-                    "-h", "/h", "-?", "/?"
-                )
+                    "-h",
+                    "/h",
+                    "-?",
+                    "/?")
                 {
                     Action = new CustomHelpAction
                     {
@@ -77,15 +83,15 @@ namespace DotMake.CommandLine
                     CliStringUtil.AddPrefix("version", namePrefixConvention),
                     (shortFormAutoGenerate.HasFlag(CliNameAutoGenerate.Options))
                         ? new[] { CliStringUtil.AddPrefix("v", shortFormPrefixConvention) }
-                        : Array.Empty<string>()
-                )
+                        : Array.Empty<string>())
                 {
                     Action = new VersionOptionAction()
                 };
                 rootCommand.Options.Add(versionOption);
 
                 //CliRootCommand constructor already adds SuggestDirective so remove it
-                foreach (var directive in rootCommand.Directives.Where(directive => directive is SuggestDirective).ToArray())
+                foreach (var directive in rootCommand.Directives.Where(directive => directive is SuggestDirective)
+                             .ToArray())
                     rootCommand.Directives.Remove(directive);
 
                 if (settings.EnableSuggestDirective)
@@ -127,7 +133,7 @@ namespace DotMake.CommandLine
         public CliResult Parse(string[] args = null)
         {
             var parseResult = Command.Parse(FixArgs(args) ?? GetArgs(), parserConfiguration);
-            return new CliResult(bindingContext, parseResult);
+            return new CliRunnableResult(bindingContext, parseResult, this);
         }
 
         /// <summary>
@@ -143,7 +149,7 @@ namespace DotMake.CommandLine
         public CliResult Parse(string commandLine)
         {
             var parseResult = Command.Parse(commandLine, parserConfiguration);
-            return new CliResult(bindingContext, parseResult);
+            return new CliRunnableResult(bindingContext, parseResult, this);
         }
 
 
@@ -161,8 +167,7 @@ namespace DotMake.CommandLine
         public int Run(string[] args = null)
         {
             using (new CliSession(settings))
-                return Command.Parse(FixArgs(args) ?? GetArgs(), parserConfiguration)
-                    .Invoke(invocationConfiguration);
+                return Command.Parse(FixArgs(args) ?? GetArgs(), parserConfiguration).Invoke(invocationConfiguration);
         }
 
         /// <summary>
@@ -179,8 +184,7 @@ namespace DotMake.CommandLine
         public int Run(string commandLine)
         {
             using (new CliSession(settings))
-                return Command.Parse(commandLine, parserConfiguration)
-                    .Invoke(invocationConfiguration);
+                return Command.Parse(commandLine, parserConfiguration).Invoke(invocationConfiguration);
         }
 
         /// <summary>
@@ -221,6 +225,17 @@ namespace DotMake.CommandLine
                     .InvokeAsync(invocationConfiguration, cancellationToken);
         }
 
+        int IParseResultRunner.Run(ParseResult parseResult)
+        {
+            using (new CliSession(settings))
+                return parseResult.Invoke(invocationConfiguration);
+        }
+
+        async Task<int> IParseResultRunner.RunAsync(ParseResult parseResult, CancellationToken cancellationToken)
+        {
+            using (new CliSession(settings))
+                return await parseResult.InvokeAsync(invocationConfiguration, cancellationToken);
+        }
 
         /// <summary>
         /// Returns a string array containing the command-line arguments for the current process.
@@ -244,8 +259,7 @@ namespace DotMake.CommandLine
 
         private static string[] FixArgs(string[] args)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                && args != null)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && args != null)
             {
                 /*
                   On Windows, trim ending double quote:
