@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using DotMake.CommandLine.Binding;
 
@@ -13,7 +15,9 @@ namespace DotMake.CommandLine
     public class CliBindingContext
     {
         private readonly Dictionary<Tuple<ParseResult, Type>, object> bindCache = new();
-        private const string ErrorCommon = "Ensure Cli.Run, Cli.Parse or Cli.GetParser method is called for self or a definition class in the same command hierarchy.";
+
+        private const string ErrorCommon =
+            "Ensure Cli.Run, Cli.Parse or Cli.GetParser method is called for self or a definition class in the same command hierarchy.";
 
         /// <summary>
         /// Map for looking up definition classes by commands, which are set by the source generator to be called from <see cref="IsCalled{TDefinition}"/> or <see cref="Contains{TDefinition}"/> methods.
@@ -49,7 +53,8 @@ namespace DotMake.CommandLine
         public object Create(Type definitionType)
         {
             if (!CreatorMap.TryGetValue(definitionType, out var creator))
-                throw new Exception($"Creator is not found for definition class '{definitionType.Name}'. {ErrorCommon}");
+                throw new Exception(
+                    $"Creator is not found for definition class '{definitionType.Name}'. {ErrorCommon}");
 
             return creator();
         }
@@ -109,6 +114,36 @@ namespace DotMake.CommandLine
             return definitionInstance;
         }
 
+        [return: NotNullIfNotNull(nameof(ensureNotNull))]
+        private Type? FindGetCalledType(ParseResult parseResult, NotNullGuard? ensureNotNull = null)
+        {
+            var currentCommandResult = parseResult.CommandResult;
+            var currentCommand = currentCommandResult.Command;
+
+            if (!CommandMap.TryGetValue(currentCommand, out var currentDefinitionType) && ensureNotNull.HasValue)
+                throw new Exception(
+                    $"Definition class is not found for command '{currentCommand.Name}'. {ErrorCommon}");
+
+            return currentDefinitionType;
+        }
+
+        /// <summary>
+        /// Tries to get the definition type of called command.
+        /// </summary>
+        /// <param name="parseResult"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public bool TryGetCalledType(ParseResult parseResult, [NotNullWhen(true)] out Type? value)
+        {
+            if (FindGetCalledType(parseResult) is { } type)
+            {
+                value = type;
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
 
         /// <summary>
         /// Creates a new instance of the definition class for called command and binds/populates the properties from the parse result.
@@ -120,13 +155,28 @@ namespace DotMake.CommandLine
         /// <inheritdoc cref="Bind" />
         public object BindCalled(ParseResult parseResult)
         {
-            var currentCommandResult = parseResult.CommandResult;
-            var currentCommand = currentCommandResult.Command;
-
-            if (!CommandMap.TryGetValue(currentCommand, out var currentDefinitionType))
-                throw new Exception($"Definition class is not found for command '{currentCommand.Name}'. {ErrorCommon}");
-
+            var currentDefinitionType = FindGetCalledType(parseResult, ensureNotNull: NotNullGuard.Default);
             return Bind(parseResult, currentDefinitionType);
+        }
+
+        /// <summary>
+        /// Tries to create a new instance of the definition class for called command and binds/populates the properties from the parse result.
+        /// <para>
+        /// Note that binding will be done only once per parse result and definition class, so calling this method consecutively for
+        /// the same parse result and the same definition class will return the cached result.
+        /// </para>
+        /// </summary>
+        /// <inheritdoc cref="Bind" />
+        public bool TryBindCalled(ParseResult parseResult, [NotNullWhen(true)] out object? value)
+        {
+            if (FindGetCalledType(parseResult) is { } type)
+            {
+                value = Bind(parseResult, type);
+                return true;
+            }
+
+            value = null;
+            return false;
         }
 
         /// <summary>
@@ -147,7 +197,8 @@ namespace DotMake.CommandLine
                 var currentCommand = currentCommandResult.Command;
 
                 if (!CommandMap.TryGetValue(currentCommand, out var currentDefinitionType))
-                    throw new Exception($"Definition class is not found for command '{currentCommand.Name}'. {ErrorCommon}");
+                    throw new Exception(
+                        $"Definition class is not found for command '{currentCommand.Name}'. {ErrorCommon}");
 
                 list.Add(Bind(parseResult, currentDefinitionType));
 
@@ -229,7 +280,9 @@ namespace DotMake.CommandLine
         /// <typeparam name="TCollection">The collection type, the argument type itself.</typeparam>
         /// <typeparam name="TItem">The item type, e.g. if argument type is IEnumerable&lt;T&gt;, item type will be T.</typeparam>
         /// <returns>A delegate which can be passed to an option or argument.</returns>
-        public Func<ArgumentResult, TCollection> GetArgumentParser<TCollection, TItem>(Func<Array, TCollection> convertFromArray, Func<string, TItem> convertFromString = null)
+        public Func<ArgumentResult, TCollection> GetArgumentParser<TCollection, TItem>(
+            Func<Array, TCollection> convertFromArray,
+            Func<string, TItem> convertFromString = null)
         {
             ArgumentConverter.RegisterCollectionConverter(convertFromArray);
             ArgumentConverter.RegisterStringConverter(convertFromString);
@@ -247,7 +300,8 @@ namespace DotMake.CommandLine
         /// <param name="convertFromString">A delegate which creates an instance of custom type from a string.</param>
         /// <typeparam name="TArgument">The argument type.</typeparam>
         /// <returns>A delegate which can be passed to an option or argument.</returns>
-        public Func<ArgumentResult, TArgument> GetArgumentParser<TArgument>(Func<string, TArgument> convertFromString = null)
+        public Func<ArgumentResult, TArgument> GetArgumentParser<TArgument>(
+            Func<string, TArgument> convertFromString = null)
         {
             ArgumentConverter.RegisterStringConverter(convertFromString);
 
@@ -263,9 +317,7 @@ namespace DotMake.CommandLine
 
                 tryConvertArgument(result, out var value);
 
-                return value != null
-                    ? (TArgument)value
-                    : default;
+                return value != null ? (TArgument)value : default;
             };
         }
 
@@ -294,7 +346,8 @@ namespace DotMake.CommandLine
                 if (type == typeof(string[]))
                     return (T)(object)result.Values.ToArray();
 
-                throw new Exception("Currently only 'bool', 'string' and 'string[]' types are supported for [CliDirective] properties.");
+                throw new Exception(
+                    "Currently only 'bool', 'string' and 'string[]' types are supported for [CliDirective] properties.");
             }
 
             return (T)ArgumentConverter.GetDefaultValue(typeof(T));

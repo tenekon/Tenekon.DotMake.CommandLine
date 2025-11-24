@@ -1,5 +1,6 @@
 using System;
 using System.CommandLine;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,9 +14,7 @@ namespace DotMake.CommandLine
     {
         private readonly CliBindingContext bindingContext;
 
-        internal CliResult(
-            CliBindingContext bindingContext,
-            ParseResult parseResult)
+        internal CliResult(CliBindingContext bindingContext, ParseResult parseResult)
         {
             this.bindingContext = bindingContext;
             ParseResult = parseResult;
@@ -51,6 +50,17 @@ namespace DotMake.CommandLine
             return bindingContext.Bind(ParseResult, definitionType, returnEmpty);
         }
 
+        /// <inheritdoc cref="CliBindingContext.TryGetCalledType" />
+        public bool TryGetCalledType([NotNullWhen(true)] out Type? value)
+        {
+            return bindingContext.TryGetCalledType(ParseResult, out value);
+        }
+
+        /// <inheritdoc cref="CliBindingContext.TryBindCalled" />
+        public bool TryBindCalled([NotNullWhen(true)] out object? value)
+        {
+            return bindingContext.TryBindCalled(ParseResult, out value);
+        }
 
         /// <inheritdoc cref="CliBindingContext.BindCalled" />
         public object BindCalled()

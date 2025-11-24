@@ -2,12 +2,13 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
-    <LangVersion>10.0</LangVersion>
+    <LangVersion>12.0</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
 
     <!--
       IsTrimmable to enable trim warnings
-      https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/prepare-libraries-for-trimming?pivots=dotnet-6-0#enable-project-specific-trimming    
+      https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/prepare-libraries-for-trimming?pivots=dotnet-6-0#enable-project-specific-trimming
 
       IsAotCompatible to enable trim warnings (also enables IsTrimmable but it's only for net.8.0)
       https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/?tabs=net8plus%2Cwindows#aot-compatibility-analyzers
@@ -22,9 +23,9 @@
     <PackageReleaseNotes>
       <![CDATA[
         - **Improved:** Updated to final version `2.0.0` of `System.CommandLine`.
-          
-        - **Improved:** Remove `SourceRevisionId` (commit id) from `AssemblyInformationalVersion` (`<InformationalVersion>`)  
-          so that displayed app version and result of `--version` command is clean and concise.  
+
+        - **Improved:** Remove `SourceRevisionId` (commit id) from `AssemblyInformationalVersion` (`<InformationalVersion>`)
+          so that displayed app version and result of `--version` command is clean and concise.
           For example display `MyApp v2.0.0` instead of `MyApp v2.0.0+b0f34d51fccc69fd334253924abd8d6853fad7aa`.
       ]]>
      </PackageReleaseNotes>
@@ -63,8 +64,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- 
-      https://github.com/dotnet/roslyn/issues/55229 
+    <!--
+      https://github.com/dotnet/roslyn/issues/55229
       https://stackoverflow.com/a/69193922
     -->
     <!-- Ensure that the source generator is built together with this project -->
