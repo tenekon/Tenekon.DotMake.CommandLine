@@ -79,6 +79,7 @@
       https://learn.microsoft.com/en-us/nuget/concepts/msbuild-props-and-targets
     -->
     <None Include="nuget.props" Pack="true" PackagePath="build/$(PackageId).props" Visible="false" />
+    <None Include="nuget.props" Pack="true" PackagePath="buildTransitive/$(PackageId).props" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
