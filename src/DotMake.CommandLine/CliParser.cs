@@ -17,36 +17,36 @@ namespace DotMake.CommandLine
     /// </summary>
     public class CliParser : IParseResultRunner
     {
-        private readonly CliBindingContext bindingContext = new();
-        private readonly CliSettings settings;
-        private readonly ParserConfiguration parserConfiguration;
-        private readonly InvocationConfiguration invocationConfiguration;
+        internal readonly CliBindingContext BindingContext = new();
+        internal readonly CliSettings Settings;
+        internal readonly ParserConfiguration ParserConfiguration;
+        internal readonly InvocationConfiguration InvocationConfiguration;
 
         internal CliParser(Type definitionType, CliSettings settings = null)
         {
             var commandBuilder = CliCommandBuilder.Get(definitionType);
-            var command = commandBuilder.BuildWithHierarchy(bindingContext, out var rootCommand);
+            var command = commandBuilder.BuildWithHierarchy(BindingContext, out var rootCommand);
 
             settings ??= new CliSettings();
-            this.settings = settings;
+            Settings = settings;
 
             Command = command;
 
-            parserConfiguration = new ParserConfiguration
+            ParserConfiguration = new ParserConfiguration
             {
                 EnablePosixBundling = settings.EnablePosixBundling,
                 ResponseFileTokenReplacer = settings.ResponseFileTokenReplacer
             };
 
-            invocationConfiguration = new InvocationConfiguration
+            InvocationConfiguration = new InvocationConfiguration
             {
                 EnableDefaultExceptionHandler = settings.EnableDefaultExceptionHandler,
                 ProcessTerminationTimeout = settings.ProcessTerminationTimeout,
             };
             if (settings.Output != null) //Console.Out is NOT being used
-                invocationConfiguration.Output = settings.Output;
+                InvocationConfiguration.Output = settings.Output;
             if (settings.Error != null) //Console.Error is NOT being used
-                invocationConfiguration.Error = settings.Error;
+                InvocationConfiguration.Error = settings.Error;
 
             if (rootCommand != null)
             {
@@ -124,13 +124,13 @@ namespace DotMake.CommandLine
         /// or the string array passed to the program's <c>Main</c> method (old style).
         /// If not specified or <see langword="null"/>, <c>args</c> will be retrieved automatically from the current process via <see cref="GetArgs"/>.
         /// </param>
-        /// <returns>A <see cref="CliResult" /> providing details about the parse operation and methods for binding.</returns>
+        /// <returns>A <see cref="CliRunnableResult" /> providing details about the parse operation and methods for binding and running.</returns>
         /*
         /// <example>
         ///     <code source="../TestApp/CliExamples.cs" region="CliParseWithResult" language="cs" />
         /// </example>
         */
-        public CliResult Parse(string[] args = null)
+        public CliRunnableResult Parse(string[] args = null)
         {
             var parseResult = Command.Parse(FixArgs(args) ?? GetArgs(), parserConfiguration);
             return new CliRunnableResult(bindingContext, parseResult, this);
@@ -146,7 +146,7 @@ namespace DotMake.CommandLine
         ///     <code source="../TestApp/CliExamples.cs" region="CliParseStringWithResult" language="cs" />
         /// </example>
         */
-        public CliResult Parse(string commandLine)
+        public CliRunnableResult Parse(string commandLine)
         {
             var parseResult = Command.Parse(commandLine, parserConfiguration);
             return new CliRunnableResult(bindingContext, parseResult, this);
@@ -201,9 +201,9 @@ namespace DotMake.CommandLine
         */
         public async Task<int> RunAsync(string[] args = null, CancellationToken cancellationToken = default)
         {
-            using (new CliSession(settings))
-                return await Command.Parse(FixArgs(args) ?? GetArgs(), parserConfiguration)
-                    .InvokeAsync(invocationConfiguration, cancellationToken);
+            using (new CliSession(Settings))
+                return await Command.Parse(FixArgs(args) ?? GetArgs(), ParserConfiguration)
+                    .InvokeAsync(InvocationConfiguration, cancellationToken);
         }
 
         /// <summary>
@@ -220,9 +220,9 @@ namespace DotMake.CommandLine
         */
         public async Task<int> RunAsync(string commandLine, CancellationToken cancellationToken = default)
         {
-            using (new CliSession(settings))
-                return await Command.Parse(commandLine, parserConfiguration)
-                    .InvokeAsync(invocationConfiguration, cancellationToken);
+            using (new CliSession(Settings))
+                return await Command.Parse(commandLine, ParserConfiguration)
+                    .InvokeAsync(InvocationConfiguration, cancellationToken);
         }
 
         int IParseResultRunner.Run(ParseResult parseResult)

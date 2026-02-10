@@ -486,3 +486,5 @@ $RECYCLE.BIN/
 # custom includes
 !PublishTrimmed.pubxml
 !PublishAot.pubxml
+
+GeneratedFiles/
